@@ -9,3 +9,8 @@ paths:
       responses:
         '200':
           description: OK
+  /fart:
+    get:
+      summary: does a fart
+      description: farts real loud
+      operationId: opid
