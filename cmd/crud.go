@@ -99,6 +99,39 @@ func write(document libopenapi.Document, filepath string) {
 	}
 }
 
+func openSpec(filepath string) (libopenapi.Document, libopenapi.DocumentModel[v3.Document], []error) {
+	var errors []error = make([]error, 0, 3)
+	openapiBytes, err := os.ReadFile(filepath)
+	if err != nil {
+		errors = append(errors, err)
+	}
+
+	document, err := libopenapi.NewDocument(openapiBytes)
+	if err != nil {
+		errors = append(errors, err)
+	}
+
+	model, errs := document.BuildV3Model()
+	errors = append(errors, errs...)
+	return document, *model, errors
+}
+
+func createEditForm(summary, operationId, description *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Summary").
+				Value(summary),
+			huh.NewInput().
+				Title("Operation ID").
+				Value(operationId),
+			huh.NewText().
+				Title("Description").
+				Value(description),
+		),
+	)
+}
+
 var crudCmd = &cobra.Command{
 	Use:       `crud`,
 	Short:     `CRUD an OpenAPI spec`,
@@ -107,40 +140,31 @@ var crudCmd = &cobra.Command{
 	Example:   " crudr crud\n crudr crud path/to/spec.yaml",
 	ValidArgs: []cobra.Completion{cobra.CompletionWithDesc(`filename`, `defaults to ./openapi.yaml`)},
 	Run: func(cmd *cobra.Command, args []string) {
+		// Parse args for path to openapi yaml spec
 		var filepath = "openapi.yaml"
 		if len(args) == 1 {
 			filepath = args[0]
 		}
 
-		openapiBytes, err := os.ReadFile(filepath)
-		if err != nil {
-			fmt.Printf("%s found. Please run 'gocrudr init' first.\n", filepath)
+		// Construct the document and model from the spec
+		document, model, errs := openSpec(filepath)
+		if len(errs) > 0 {
+			fmt.Printf("Could not open the spec '%s'. Errors: %v\n", filepath, errs)
 			return
 		}
 
-		document, err := libopenapi.NewDocument(openapiBytes)
-		if err != nil {
-			fmt.Printf("Error parsing %s: %s\n", filepath, err)
-
-			return
-		}
-
-		model, _ := document.BuildV3Model()
-
+		// Form: Select endpoint to edit, setup
 		paths := make([]string, 0, (model.Model.Paths.PathItems.Len()))
 		for k := range model.Model.Paths.PathItems.OrderedMap.KeysFromNewest() {
 			paths = append(paths, k)
 		}
 		sort.Strings(paths)
-
 		options := make([]huh.Option[string], len(paths)+1)
 		options[0] = huh.NewOption("+ New Endpoint", "+ New Endpoint")
 		for i, path := range paths {
 			options[i+1] = huh.NewOption(path, path)
 		}
-
 		var selectedEndpoint string
-
 		form := huh.NewForm(
 			huh.NewGroup(
 				huh.NewSelect[string]().
@@ -148,14 +172,16 @@ var crudCmd = &cobra.Command{
 					Options(options...).Value(&selectedEndpoint)),
 		)
 
-		err = form.Run()
+		// Form: Select endpoint to edit, render
+		var err = form.Run()
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			return
 		}
 
+		// Form: Select endpoint to edit, handle
 		if selectedEndpoint == "+ New Endpoint" {
-			createEndpoint(document, *model, filepath)
+			createEndpoint(document, model, filepath)
 		} else {
 			pathItem := model.Model.Paths.PathItems.GetOrZero(selectedEndpoint)
 
@@ -236,20 +262,4 @@ var crudCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(crudCmd)
-}
-
-func createEditForm(summary, operationId, description *string) *huh.Form {
-	return huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Summary").
-				Value(summary),
-			huh.NewInput().
-				Title("Operation ID").
-				Value(operationId),
-			huh.NewText().
-				Title("Description").
-				Value(description),
-		),
-	)
 }
