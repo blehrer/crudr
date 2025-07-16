@@ -81,6 +81,11 @@ func createEndpoint(document libopenapi.Document, model libopenapi.DocumentModel
 		pathItem.Options = operation
 	}
 
+	write(document, filepath)
+	fmt.Println("Endpoint created successfully!")
+}
+
+func write(document libopenapi.Document, filepath string) {
 	// Save the updated model to openapi.yaml
 	rendered, err := document.Render()
 	if err != nil {
@@ -92,15 +97,14 @@ func createEndpoint(document libopenapi.Document, model libopenapi.DocumentModel
 		fmt.Printf("Error writing to %s: %s\n", filepath, err)
 		return
 	}
-	fmt.Println("Endpoint created successfully!")
 }
 
 var crudCmd = &cobra.Command{
-	Use:           `crud`,
-	Short:         `CRUD an OpenAPI spec`,
-	Long:          `This command opens a wizard to perform CRUD operations on an OpenAPI spec.`,
-	Args:          cobra.RangeArgs(0, 1),
-	Example:     " crudr crud\n crudr crud path/to/spec.yaml",
+	Use:       `crud`,
+	Short:     `CRUD an OpenAPI spec`,
+	Long:      `This command opens a wizard to perform CRUD operations on an OpenAPI spec.`,
+	Args:      cobra.RangeArgs(0, 1),
+	Example:   " crudr crud\n crudr crud path/to/spec.yaml",
 	ValidArgs: []cobra.Completion{cobra.CompletionWithDesc(`filename`, `defaults to ./openapi.yaml`)},
 	Run: func(cmd *cobra.Command, args []string) {
 		var filepath = "openapi.yaml"
@@ -223,17 +227,7 @@ var crudCmd = &cobra.Command{
 			operation.Description = currentDescription
 
 			// Save the updated model to openapi.yaml
-			rendered, err := document.Render()
-			if err != nil {
-				fmt.Printf("Error rendering document: %s\n", err)
-				return
-			}
-
-			err = os.WriteFile(filepath, rendered, 0644)
-			if err != nil {
-				fmt.Printf("Error writing to %s: %s\n", filepath, err)
-				return
-			}
+			write(document, filepath)
 
 			fmt.Println("Endpoint updated successfully!")
 		}
