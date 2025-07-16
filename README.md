@@ -1,4 +1,4 @@
-⚠️ This project is currently under development, and I currently am not taking feature requests.
+⚠️ This project is under development, and I am not taking feature requests.
 
 # CRUDR - Steering OpenAPI Development from the CLI
 ![crudr logo](./rudder.png)
