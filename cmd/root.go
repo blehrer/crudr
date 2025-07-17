@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gocrudr",
+	Use:   "crudr",
 	Short: "A CLI for CRUDR",
 	Long:  `A suite of tools for maintaining OpenAPI specs, servers, and clients.`,
 	Run: func(cmd *cobra.Command, args []string) {
