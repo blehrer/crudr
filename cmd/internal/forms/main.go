@@ -16,7 +16,7 @@ type V3Model libopenapi.DocumentModel[v3.Document]
 func SelectEndpoint(model V3Model) (string, V3Model, error) {
 	var endpoint string
 	paths := make([]huh.Option[string], 0, model.Model.Paths.PathItems.Len()+1)
-	paths = append(paths, huh.NewOption("+ New Endpoint", __.NewEndpoint))
+	paths = append(paths, huh.NewOption("+ New Endpoint", Constants.NewEndpoint))
 	for path := range model.Model.Paths.PathItems.OrderedMap.KeysFromNewest() {
 		paths = append(paths, huh.NewOption(path, path))
 	}
@@ -28,7 +28,7 @@ func SelectEndpoint(model V3Model) (string, V3Model, error) {
 				Value(&endpoint),
 		))
 	err := form.Run()
-	if endpoint == __.NewEndpoint {
+	if endpoint == Constants.NewEndpoint {
 		return NewEndpoint(model)
 	}
 	return endpoint, model, err
@@ -107,7 +107,7 @@ func HttpMethods(endpointPath string) (string, error) {
 				Value(&endpointPath),
 			huh.NewSelect[string]().
 				Title("Method").
-				Options(huh.NewOptions(__.HttpMethods...)...).
+				Options(huh.NewOptions(Constants.HttpMethods...)...).
 				Value(&method)))
 	err := form.Run()
 	return method, err
@@ -120,7 +120,7 @@ type constants struct {
 	HttpMethods []string
 }
 
-var __ = constants{
+var Constants = constants{
 	NewEndpoint: "+Endpoint",
 
 	// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
