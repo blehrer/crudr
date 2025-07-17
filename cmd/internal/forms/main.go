@@ -11,7 +11,9 @@ import (
 
 type V3Model libopenapi.DocumentModel[v3.Document]
 
-func Endpoints(model V3Model) (string, V3Model, error) {
+// {{{ Endpoints
+
+func SelectEndpoint(model V3Model) (string, V3Model, error) {
 	var endpoint string
 	paths := make([]huh.Option[string], 0, model.Model.Paths.PathItems.Len()+1)
 	paths = append(paths, huh.NewOption("+ New Endpoint", __.NewEndpoint))
@@ -93,6 +95,9 @@ func sanitizeEndpoint(endpoint string) string {
 	return endpoint
 }
 
+// }}}
+
+// {{{Http Methods
 func HttpMethods(endpointPath string) (string, error) {
 	var method string
 	form := huh.NewForm(
@@ -107,6 +112,8 @@ func HttpMethods(endpointPath string) (string, error) {
 	err := form.Run()
 	return method, err
 }
+
+// }}}
 
 type constants struct {
 	NewEndpoint string
