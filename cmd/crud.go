@@ -12,29 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func chooseHttpMethod(path string) (string, error) {
-	var method string
-	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewInput().
-				Title("Path").
-				Value(&path),
-			huh.NewSelect[string]().
-				Title("Method").
-				Options(
-					huh.NewOption("GET", "GET"),
-					huh.NewOption("POST", "POST"),
-					huh.NewOption("PUT", "PUT"),
-					huh.NewOption("DELETE", "DELETE"),
-					huh.NewOption("PATCH", "PATCH"),
-					huh.NewOption("HEAD", "HEAD"),
-					huh.NewOption("OPTIONS", "OPTIONS"),
-				).Value(&method)),
-	)
-
-	var err = form.Run()
-	return method, err
-}
 
 func createEndpoint(document libopenapi.Document, model libopenapi.DocumentModel[v3.Document], filepath string) {
 	var path string
