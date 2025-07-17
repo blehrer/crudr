@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	forms "crudr/cmd/internal/forms"
 	"fmt"
 	"os"
 	"sort"
@@ -39,7 +40,7 @@ func createEndpoint(document libopenapi.Document, model libopenapi.DocumentModel
 	var path string
 	var newSummary, newOperationId, newDescription string
 
-	httpMethod, err := chooseHttpMethod(path)
+	httpMethod, err := forms.HttpMethods(path)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}
