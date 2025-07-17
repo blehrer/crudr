@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -10,6 +11,65 @@ import (
 )
 
 type V3Model libopenapi.DocumentModel[v3.Document]
+
+var V3PointOfEntry = huh.NewForm(
+	huh.NewGroup(
+		huh.NewInput().
+			Title("OpenAPI spec version").
+			Key("openapi").
+			Description("The version number of the OpenAPI Specification that the OpenAPI document uses.").
+			Suggestions([]string{"3.1.0"}).
+			Validate(func(s string) error {
+				_, err := regexp.Match("\\d+\\.\\d+\\.\\d+", []byte(s))
+				return err
+			})),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("info").
+			Key("info").
+			Description("Provides metadata about the API.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("jsonSchemaDialect").
+			Key("jsonSchemaDialect").
+			Description("The default value for the $schema keyword within Schema Objects contained within this OAS document.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("servers").
+			Key("servers").
+			Description("An array of Server Objects, which provide connectivity information to a target server.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("paths").
+			Key("paths").
+			Description("The available paths and operations for the API.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("webhooks").
+			Key("webhooks").
+			Description("The incoming webhooks that MAY be received as part of this API and that the API consumer MAY choose to implement.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("components").
+			Key("components").
+			Description("An element to hold various schemas for the document.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("security").
+			Key("security").
+			Description("A declaration of which security mechanisms can be used across the API.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("tags").
+			Key("tags").
+			Description("A list of tags used by the document with additional metadata.")),
+	huh.NewGroup(
+		huh.NewInput().
+			Title("externalDocs").
+			Key("externalDocs").
+			Description("Additional external documentation.")))
+
+// }}}
 
 // {{{ Endpoints
 
@@ -126,3 +186,5 @@ var Constants = constants{
 	// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
 	HttpMethods: []string{"GET", "HEAD", "OPTIONS", "TRACE", "PUT", "DELETE", "POST", "PATCH", "CONNECT"},
 }
+
+// vim: foldmethod=marker
