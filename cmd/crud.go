@@ -12,8 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-func createEndpoint(document libopenapi.Document, model libopenapi.DocumentModel[v3.Document], filepath string) {
+func createEndpoint(model libopenapi.DocumentModel[v3.Document], filepath string) {
 	var path string
 	var newSummary, newOperationId, newDescription string
 
@@ -59,15 +58,14 @@ func createEndpoint(document libopenapi.Document, model libopenapi.DocumentModel
 		pathItem.Options = operation
 	}
 
-	write(document, filepath)
+	write(model, filepath)
 	fmt.Println("Endpoint created successfully!")
 }
 
-func write(document libopenapi.Document, filepath string) {
-	// Save the updated model to openapi.yaml
-	rendered, err := document.Render()
+func write(model libopenapi.DocumentModel[v3.Document], filepath string) {
+	rendered, err := model.Model.Render()
 	if err != nil {
-		fmt.Printf("Error rendering document: %s\n", err)
+		fmt.Printf("Error rendering model: %s\n", err)
 		return
 	}
 	err = os.WriteFile(filepath, rendered, 0644)
@@ -77,7 +75,7 @@ func write(document libopenapi.Document, filepath string) {
 	}
 }
 
-func openSpec(filepath string) (libopenapi.Document, libopenapi.DocumentModel[v3.Document], []error) {
+func openSpec(filepath string) (libopenapi.DocumentModel[v3.Document], []error) {
 	var errors []error = make([]error, 0, 3)
 	openapiBytes, err := os.ReadFile(filepath)
 	if err != nil {
@@ -91,7 +89,7 @@ func openSpec(filepath string) (libopenapi.Document, libopenapi.DocumentModel[v3
 
 	model, errs := document.BuildV3Model()
 	errors = append(errors, errs...)
-	return document, *model, errors
+	return *model, errors
 }
 
 func createEditForm(summary, operationId, description *string) *huh.Form {
@@ -125,7 +123,7 @@ var crudCmd = &cobra.Command{
 		}
 
 		// Construct the document and model from the spec
-		document, model, errs := openSpec(filepath)
+		model, errs := openSpec(filepath)
 		if len(errs) > 0 {
 			fmt.Printf("Could not open the spec '%s'. Errors: %v\n", filepath, errs)
 			return
@@ -159,7 +157,7 @@ var crudCmd = &cobra.Command{
 
 		// Form: Select endpoint to edit, handle
 		if selectedEndpoint == "+ New Endpoint" {
-			createEndpoint(document, model, filepath)
+			createEndpoint(model, filepath)
 		} else {
 			pathItem := model.Model.Paths.PathItems.GetOrZero(selectedEndpoint)
 
@@ -231,7 +229,7 @@ var crudCmd = &cobra.Command{
 			operation.Description = currentDescription
 
 			// Save the updated model to openapi.yaml
-			write(document, filepath)
+			write(model, filepath)
 
 			fmt.Println("Endpoint updated successfully!")
 		}

@@ -10,15 +10,27 @@ import (
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
-type V3Model libopenapi.DocumentModel[v3.Document]
+// {{{ V3 Point of entry
 
-var V3PointOfEntry = huh.NewForm(
+func V3PointOfEntry(selection string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Main").
+				Key("root").
+				Filtering(true).
+				Options(huh.NewOptions(Constants.Sections...)...).
+				Value(&selection),
+		))
+}
+
+var V3PointOfEntry_ = huh.NewForm(
 	huh.NewGroup(
 		huh.NewInput().
 			Title("OpenAPI spec version").
 			Key("openapi").
 			Description("The version number of the OpenAPI Specification that the OpenAPI document uses.").
-			Suggestions([]string{"3.1.0"}).
+			Suggestions([]string{"3.1.1"}).
 			Validate(func(s string) error {
 				_, err := regexp.Match("\\d+\\.\\d+\\.\\d+", []byte(s))
 				return err
@@ -73,7 +85,7 @@ var V3PointOfEntry = huh.NewForm(
 
 // {{{ Endpoints
 
-func SelectEndpoint(model V3Model) (string, V3Model, error) {
+func EndpointsForm(model *libopenapi.DocumentModel[v3.Document]) *huh.Form {
 	var endpoint string
 	paths := make([]huh.Option[string], 0, model.Model.Paths.PathItems.Len()+1)
 	paths = append(paths, huh.NewOption("+ New Endpoint", Constants.NewEndpoint))
@@ -81,20 +93,24 @@ func SelectEndpoint(model V3Model) (string, V3Model, error) {
 		paths = append(paths, huh.NewOption(path, path))
 	}
 
-	form := huh.NewForm(
+	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Path").
 				Value(&endpoint),
 		))
-	err := form.Run()
+}
+
+func SelectEndpoint(model *libopenapi.DocumentModel[v3.Document]) (string, *libopenapi.DocumentModel[v3.Document], error) {
+	var endpoint string
+	err := EndpointsForm(model).Run()
 	if endpoint == Constants.NewEndpoint {
 		return NewEndpoint(model)
 	}
 	return endpoint, model, err
 }
 
-func NewEndpoint(model V3Model) (string, V3Model, error) {
+func NewEndpoint(model *libopenapi.DocumentModel[v3.Document]) (string, *libopenapi.DocumentModel[v3.Document], error) {
 	var endpoint string
 	form := huh.NewForm(
 		huh.NewGroup(
@@ -108,7 +124,7 @@ func NewEndpoint(model V3Model) (string, V3Model, error) {
 	return endpoint, model, err
 }
 
-func DeleteEndpoints(model V3Model) error {
+func DeleteEndpoints(model libopenapi.DocumentModel[v3.Document]) error {
 	var paths []huh.Option[string]
 	for path := range model.Model.Paths.PathItems.KeysFromNewest() {
 		paths = append(paths, huh.NewOption(path, path))
@@ -176,11 +192,18 @@ func HttpMethods(endpointPath string) (string, error) {
 // }}}
 
 type constants struct {
+	Sections    []string
 	NewEndpoint string
 	HttpMethods []string
 }
 
 var Constants = constants{
+	Sections: []string{
+		"OpenAPI spec version",
+		"info",
+		"jsonSchemaDialect",
+		"servers",
+		"paths", "webhooks", "components", "security", "tags", "externalDocs"},
 	NewEndpoint: "+Endpoint",
 
 	// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
