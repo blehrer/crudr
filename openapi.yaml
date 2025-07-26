@@ -7,27 +7,8 @@ paths:
     summary: simple endpoint
     get:
       operationId: 'getRoot'
-
-# paths:
-#   /:
-#     get:
-#       summary: Simple endpoint
-#       responses:
-#         '200':
-#           description: OK
-#       operationId: root-id
-#   /fart:
-#     get:
-#       summary: does a fart
-#       description: farts real loud
-#       operationId: opid
-#   /owi:
-#     post:
-#       summary: 'post an owi'
-#       description: does things postwise
-#       operationId: post-owi-v1
-#   /jj:
-#     patch:
-#       summary: patch the jj
-#       description: it patches jjs
-#       operationId: jj-patch
+  /fart:
+    get:
+      summary: does a fart
+      description: farts real loud
+      operationId: opid
